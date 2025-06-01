@@ -1,0 +1,41 @@
+parameters:
+  - name: pool
+    type: object
+  - name: containerName
+    type: string
+    default: ''
+  - name: dotnetVersion
+    type: string
+  - name: installAdditionalLinuxDependencies
+    type: boolean
+    default: false
+  - name: testVSCodeVersion
+    type: string
+
+jobs:
+- job:
+  strategy:
+    matrix:
+      UnitTests:
+        npmCommand: test:unit
+        isIntegration: false
+      CSharpIntegrationTests:
+        npmCommand: test:integration:csharp
+        isIntegration: true
+      DevKitTests:
+        npmCommand: test:integration:devkit
+        isIntegration: true
+      RazorTests:
+        npmCommand: test:integration:razor
+        isIntegration: true
+  pool: ${{ parameters.pool }}
+  ${{ if parameters.containerName }}:
+    container: ${{ parameters.containerName }}
+  steps:
+  - template: /azure-pipelines/test.yml@self
+    parameters:
+      dotnetVersion: ${{ parameters.dotnetVersion }}
+      installAdditionalLinuxDependencies: ${{ parameters.installAdditionalLinuxDependencies }}
+      npmCommand: $(npmCommand)
+      testVSCodeVersion: ${{ parameters.testVSCodeVersion }}
+      isIntegration: $(isIntegration)
